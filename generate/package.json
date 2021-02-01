@@ -1,5 +1,5 @@
 {
-  "name": "back",
+  "name": "generate",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -24,12 +24,9 @@
     "@nestjs/common": "^7.5.1",
     "@nestjs/core": "^7.5.1",
     "@nestjs/platform-express": "^7.5.1",
-    "@nestjs/typeorm": "^7.1.5",
-    "config": "^3.3.3",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^6.6.3",
-    "typeorm": "^0.2.30"
+    "rxjs": "^6.6.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.5.1",
@@ -42,7 +39,7 @@
     "@typescript-eslint/eslint-plugin": "^4.6.1",
     "@typescript-eslint/parser": "^4.6.1",
     "eslint": "^7.12.1",
-    "eslint-config-prettier": "7.1.0",
+    "eslint-config-prettier": "7.2.0",
     "eslint-plugin-prettier": "^3.1.4",
     "jest": "^26.6.3",
     "prettier": "^2.1.2",
