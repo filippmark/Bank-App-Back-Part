@@ -3,7 +3,6 @@ import {
   Column,
   Entity,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Citizenship } from '../citizenship/citizenship.entity';
@@ -12,8 +11,8 @@ import { Town } from '../town/town.entity';
 
 @Entity()
 export class Client extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   name: string;
@@ -29,6 +28,9 @@ export class Client extends BaseEntity {
 
   @Column()
   birthDate: Date;
+
+  @Column()
+  sex: boolean;
 
   @Column({
     unique: true,
@@ -88,6 +90,7 @@ export class Client extends BaseEntity {
 
   @Column({
     type: 'bigint',
+    nullable: true,
   })
   monthlyIncome: number;
 
@@ -96,12 +99,24 @@ export class Client extends BaseEntity {
   })
   citizenship: Citizenship;
 
+  @Column()
+  citizenshipId: number;
+
   @ManyToOne(() => Disability, (disability) => disability.clients)
   disability: Disability;
+
+  @Column()
+  disabilityId: number;
 
   @ManyToOne(() => Town, (town) => town.clients, { nullable: false })
   regTown: Town;
 
+  @Column()
+  regTownId: number;
+
   @ManyToOne(() => Town, (town) => town.clients, { nullable: false })
   actualTown: Town;
+
+  @Column()
+  actualTownId: number;
 }
