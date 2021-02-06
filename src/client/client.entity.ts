@@ -8,6 +8,7 @@ import {
 import { Citizenship } from '../citizenship/citizenship.entity';
 import { Disability } from '../disability/disability.entity';
 import { Town } from '../town/town.entity';
+import { MaritalStatus } from '../marital-status/marital-status.entity';
 
 @Entity()
 export class Client extends BaseEntity {
@@ -113,6 +114,14 @@ export class Client extends BaseEntity {
 
   @Column()
   regTownId: number;
+
+  @ManyToOne(() => MaritalStatus, (maritalStatus) => maritalStatus.clients, {
+    nullable: false,
+  })
+  maritalStatus: MaritalStatus;
+
+  @Column()
+  maritalStatusId: number;
 
   @ManyToOne(() => Town, (town) => town.clients, { nullable: false })
   actualTown: Town;

@@ -4,7 +4,7 @@ import { DisabilityRepository } from './disability.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DisabilityRepository])],
-  providers: [],
   controllers: [],
+  providers: [],
 })
 export class DisabilityModule {}

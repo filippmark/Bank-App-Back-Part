@@ -4,14 +4,10 @@ import { ClientRepository } from './client.repository';
 
 @Injectable()
 export class ClientService {
+  constructor(
+    @InjectRepository(ClientRepository)
+    private readonly clientRepository,
+  ) {}
 
-    constructor(
-        @InjectRepository(ClientRepository)
-        private readonly clientRepository
-    ){}
-
-    public createClient(){
-
-    }
-
+  public createClient() {}
 }

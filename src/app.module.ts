@@ -5,9 +5,18 @@ import { TownModule } from './town/town.module';
 import { DisabilityModule } from './disability/disability.module';
 import { CitizenshipModule } from './citizenship/citizenship.module';
 import { ClientModule } from './client/client.module';
+import { MaritalStatusModule } from './marital-status/marital-status.module';
 
 @Module({
-  imports: [ClientModule, CitizenshipModule, DisabilityModule, TownModule, TypeOrmModule.forRoot(typeOrmConfig)],
+  imports: [
+    DisabilityModule,
+    ClientModule,
+    CitizenshipModule,
+    DisabilityModule,
+    TownModule,
+    TypeOrmModule.forRoot(typeOrmConfig),
+    MaritalStatusModule,
+  ],
   controllers: [],
   providers: [],
 })
