@@ -6,27 +6,28 @@ import {
   IsEmail,
   IsNotEmpty,
   IsNumber,
-  IsOptional, IsPassportNumber,
-  IsPositive, IsString,
+  IsOptional,
+  IsPassportNumber,
+  IsPositive,
+  IsString,
   IsUUID,
-  MaxLength,
 } from 'class-validator';
 import { Column } from 'typeorm';
 
-const ONLY_RU_ALHABET_ERROR = 'Только буквы русского афавита';
+const ONLY_RU_ALPHABET_ERROR = 'Только буквы русского афавита';
 
 export class CreateClientDto {
   @IsOptional()
   @IsUUID()
   id: string;
 
-  @IsAlpha('ru-RU', { message: ONLY_RU_ALHABET_ERROR })
+  @IsAlpha('ru-RU', { message: ONLY_RU_ALPHABET_ERROR })
   name: string;
 
-  @IsAlpha('ru-RU', { message: ONLY_RU_ALHABET_ERROR })
+  @IsAlpha('ru-RU', { message: ONLY_RU_ALPHABET_ERROR })
   surname: string;
 
-  @IsAlpha('ru-RU', { message: ONLY_RU_ALHABET_ERROR })
+  @IsAlpha('ru-RU', { message: ONLY_RU_ALPHABET_ERROR })
   middleName: string;
 
   @IsAlphanumeric()
