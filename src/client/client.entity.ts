@@ -24,7 +24,9 @@ export class Client extends BaseEntity {
   @Column()
   middleName: string;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   passportNumber: string;
 
   @Column()

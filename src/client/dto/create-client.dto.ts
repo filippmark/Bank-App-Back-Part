@@ -1,70 +1,80 @@
 import {
+  IsAlpha,
+  IsAlphanumeric,
   IsBoolean,
-  IsDate,
+  IsDateString,
   IsEmail,
   IsNotEmpty,
   IsNumber,
-  IsOptional,
-  IsPositive,
+  IsOptional, IsPassportNumber,
+  IsPositive, IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 import { Column } from 'typeorm';
 
-export class CreateTaskDto {
+const ONLY_RU_ALHABET_ERROR = 'Только буквы русского афавита';
+
+export class CreateClientDto {
+  @IsOptional()
+  @IsUUID()
+  id: string;
+
+  @IsAlpha('ru-RU', { message: ONLY_RU_ALHABET_ERROR })
   name: string;
 
+  @IsAlpha('ru-RU', { message: ONLY_RU_ALHABET_ERROR })
   surname: string;
 
+  @IsAlpha('ru-RU', { message: ONLY_RU_ALHABET_ERROR })
   middleName: string;
 
+  @IsAlphanumeric()
   passportNumber: string;
 
-  @IsDate()
-  birthDate: Date;
+  @IsDateString()
+  birthDate: string;
 
   @Column()
   sex: boolean;
 
+  @IsPassportNumber('BY')
   passportSeries: string;
 
   @IsNotEmpty()
   issuer: string;
 
-  @IsDate()
-  issueDate: Date;
+  @IsDateString()
+  issueDate: string;
 
+  @IsAlphanumeric()
   passportId: string;
 
   @IsNotEmpty()
-  @MaxLength(255)
   placeOfBirth: string;
 
   @IsNotEmpty()
-  @MaxLength(255)
   livingAddress: string;
 
   @IsOptional()
-  @MaxLength(255)
   mobilePhone: string;
 
   @IsOptional()
-  @MaxLength(255)
   homePhone: string;
 
   @IsOptional()
   @IsEmail()
-  @MaxLength(255)
   email: string;
 
   @IsOptional()
-  @MaxLength(255)
+  @IsString()
   placeOfWork: string;
 
   @IsOptional()
-  @MaxLength(255)
+  @IsString()
   position: string;
 
-  @MaxLength(255)
+  @IsString()
   placeOfResidence: string;
 
   @IsBoolean()
@@ -80,14 +90,17 @@ export class CreateTaskDto {
   monthlyIncome: number;
 
   @IsPositive()
-  citizenship: number;
+  citizenshipId: number;
 
   @IsPositive()
-  disability: number;
+  disabilityId: number;
 
   @IsPositive()
-  regTown: number;
+  regTownId: number;
 
   @IsPositive()
-  actualTown: number;
+  actualTownId: number;
+
+  @IsPositive()
+  maritalStatusId: number;
 }
