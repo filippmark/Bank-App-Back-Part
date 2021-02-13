@@ -3,9 +3,9 @@ import {
   IsAlphanumeric,
   IsBoolean,
   IsDateString,
-  IsEmail,
+  IsEmail, IsMobilePhone,
   IsNotEmpty,
-  IsNumber,
+  IsNumber, IsNumberString,
   IsOptional,
   IsPassportNumber,
   IsPositive,
@@ -58,9 +58,11 @@ export class CreateClientDto {
   livingAddress: string;
 
   @IsOptional()
+  @IsMobilePhone('be-BY')
   mobilePhone: string;
 
   @IsOptional()
+  @IsNumberString()
   homePhone: string;
 
   @IsOptional()
