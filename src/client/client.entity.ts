@@ -3,12 +3,16 @@ import {
   Column,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Citizenship } from '../citizenship/citizenship.entity';
 import { Disability } from '../disability/disability.entity';
 import { Town } from '../town/town.entity';
 import { MaritalStatus } from '../marital-status/marital-status.entity';
+import { ClientDeposit } from '../client-deposit/client-deposit.entity';
+import { Bill } from '../bill/bill.entity';
+import { ClientCredit } from '../client-credit/client-credit.entity';
 
 @Entity()
 export class Client extends BaseEntity {
@@ -130,4 +134,13 @@ export class Client extends BaseEntity {
 
   @Column()
   actualTownId: number;
+
+  @OneToMany(() => ClientDeposit, (clientDeposit) => clientDeposit.client)
+  clientDeposits: ClientDeposit[];
+
+  @OneToMany(() => ClientCredit, (clientCredit) => clientCredit.client)
+  clientCredits: ClientCredit[];
+
+  @OneToMany(() => Bill, (bill) => bill.client)
+  bills: Bill[];
 }
