@@ -1,4 +1,11 @@
-import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Patch,
+  Post,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ClientCreditService } from './client-credit.service';
 import { CreateClientCreditDto } from './dto/client-credit.dto';
 

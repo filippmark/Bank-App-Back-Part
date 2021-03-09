@@ -135,10 +135,14 @@ export class Client extends BaseEntity {
   @Column()
   actualTownId: number;
 
-  @OneToMany(() => ClientDeposit, (clientDeposit) => clientDeposit.client)
+  @OneToMany(() => ClientDeposit, (clientDeposit) => clientDeposit.client, {
+    eager: false,
+  })
   clientDeposits: ClientDeposit[];
 
-  @OneToMany(() => ClientCredit, (clientCredit) => clientCredit.client)
+  @OneToMany(() => ClientCredit, (clientCredit) => clientCredit.client, {
+    eager: false,
+  })
   clientCredits: ClientCredit[];
 
   @OneToMany(() => Bill, (bill) => bill.client)

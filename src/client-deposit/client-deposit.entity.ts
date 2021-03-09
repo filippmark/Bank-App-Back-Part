@@ -16,13 +16,13 @@ export class ClientDeposit extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Client, (client) => client.clientDeposits)
+  @ManyToOne(() => Client, (client) => client.clientDeposits, { eager: true })
   client: Client;
 
   @Column()
   clientId: string;
 
-  @ManyToOne(() => Deposit, (deposit) => deposit.depositClient)
+  @ManyToOne(() => Deposit, (deposit) => deposit.depositClient, { eager: true })
   deposit: Deposit;
 
   @Column()

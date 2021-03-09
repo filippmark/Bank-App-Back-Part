@@ -10,7 +10,7 @@ import { Currency } from '../currency/currency.entity';
 import { ClientDeposit } from '../client-deposit/client-deposit.entity';
 
 @Entity()
-export class Deposit extends BaseEntity{
+export class Deposit extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -32,6 +32,8 @@ export class Deposit extends BaseEntity{
   @ManyToOne(() => Currency, (currency) => currency.deposits, { eager: true })
   currency: Currency;
 
-  @OneToMany(() => ClientDeposit, (clientDeposit) => clientDeposit.deposit)
+  @OneToMany(() => ClientDeposit, (clientDeposit) => clientDeposit.deposit, {
+    eager: false,
+  })
   depositClient: ClientDeposit[];
 }

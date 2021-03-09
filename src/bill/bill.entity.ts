@@ -35,11 +35,11 @@ export class Bill extends BaseEntity {
   @Column()
   isActiveBill: boolean;
 
-  @ManyToOne(() => Client, (client) => client.bills)
+  @ManyToOne(() => Client, (client) => client.bills, { nullable: true })
   client: Client;
 
   @Column()
-  clientId: string;
+  clientId: string | null;
 
   @Column()
   isClosed: boolean;

@@ -4,6 +4,7 @@ import { ClientDepositRepository } from './client-deposit.repository';
 import { BillRepository } from '../bill/bill.repository';
 import { CreateClientDepositDto } from './dto/client-deposit.dto';
 import { BillService } from '../bill/bill.service';
+import { Bill } from '../bill/bill.entity';
 
 @Injectable()
 export class ClientDepositService {
@@ -59,5 +60,92 @@ export class ClientDepositService {
     );
 
     console.log(savedClientDeposit);
+  }
+
+  private calculateBalanceForBill(bill: Bill) {
+    if (bill.isActiveBill) {
+      bill.balance = bill.debit - bill.credit;
+    } else {
+      bill.balance = bill.credit - bill.debit;
+    }
+  }
+
+  public async accrueDepositPercentage(id: number) {
+    const clientDeposit = await this.clientDepositRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    const investmentAccount = await this.billService.getInvestmentBankAccount();
+    const percentBill = clientDeposit.percentBill;
+    const percentForMonth = (clientDeposit.deposit.percent / 365) * 30;
+    const earnedMoney = Math.trunc(percentForMonth * clientDeposit.startSum);
+    investmentAccount.debit = investmentAccount.debit + earnedMoney;
+    this.calculateBalanceForBill(investmentAccount);
+    percentBill.credit = percentBill.credit + earnedMoney;
+    this.calculateBalanceForBill(percentBill);
+    return await Promise.all([percentBill.save(), investmentAccount.save()]);
+  }
+
+  private updateBillsAfterReceivingPercentsMoney(
+    percentBill: Bill,
+    bankAccount: Bill,
+  ) {
+    const earnedMoney = percentBill.credit;
+    percentBill.debit = percentBill.debit + earnedMoney;
+    this.calculateBalanceForBill(percentBill);
+
+    bankAccount.debit = bankAccount.debit + earnedMoney;
+    bankAccount.credit = bankAccount.credit + earnedMoney;
+    this.calculateBalanceForBill(bankAccount);
+  }
+
+  public async getMoneyFromPercentageBill(id: number) {
+    const clientDeposit = await this.clientDepositRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    const bankAccount = await this.billService.getBankAccount();
+    const percentBill = clientDeposit.percentBill;
+    await this.updateBillsAfterReceivingPercentsMoney(percentBill, bankAccount);
+    return await Promise.all([percentBill.save(), bankAccount.save()]);
+  }
+
+  public async closeClientDeposit(id: number) {
+    const clientDeposit = await this.clientDepositRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    const {
+      investmentBankAccount,
+      bankAccount,
+    } = await this.billService.getBankAccountAndInvestmentBills();
+    const mainBill = clientDeposit.mainBill;
+    investmentBankAccount.debit =
+      investmentBankAccount.debit + clientDeposit.startSum;
+    this.calculateBalanceForBill(investmentBankAccount);
+    mainBill.credit = mainBill.credit + clientDeposit.startSum;
+    mainBill.debit = mainBill.debit + clientDeposit.startSum;
+    this.calculateBalanceForBill(mainBill);
+    bankAccount.debit = bankAccount.debit + clientDeposit.startSum;
+    bankAccount.credit = bankAccount.credit + clientDeposit.startSum;
+    this.calculateBalanceForBill(bankAccount);
+
+    const deposit = clientDeposit.deposit;
+    if (!deposit.isRevocable) {
+      this.updateBillsAfterReceivingPercentsMoney(
+        clientDeposit.percentBill,
+        bankAccount,
+      );
+    }
+
+    clientDeposit.isClosed = false;
+    return await Promise.all([
+      clientDeposit.save(),
+      investmentBankAccount.save(),
+      bankAccount.save(),
+    ]);
   }
 }
