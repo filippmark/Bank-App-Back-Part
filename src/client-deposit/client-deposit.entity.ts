@@ -43,11 +43,11 @@ export class ClientDeposit extends BaseEntity {
   @Column()
   withCapitalization: boolean;
 
-  @OneToOne(() => Bill)
+  @OneToOne(() => Bill, { cascade: true })
   @JoinColumn()
   mainBill: Bill;
 
-  @OneToOne(() => Bill)
+  @OneToOne(() => Bill, { cascade: true })
   @JoinColumn()
   percentBill: Bill;
 }

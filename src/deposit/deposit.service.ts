@@ -10,6 +10,16 @@ export class DepositService {
   ) {}
 
   public async getAllDeposits() {
-    return await this.depositRepository.find();
+    return await this.depositRepository.find({
+      where: {},
+    });
+  }
+
+  public async getDepositById(id: number) {
+    return await this.depositRepository.findOne({
+      where: {
+        id,
+      },
+    });
   }
 }

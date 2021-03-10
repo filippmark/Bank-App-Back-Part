@@ -18,19 +18,19 @@ export class Bill extends BaseEntity {
     type: 'bigint',
     nullable: true,
   })
-  debit: number;
+  debit: string;
 
   @Column({
     type: 'bigint',
     nullable: true,
   })
-  credit: number;
+  credit: string;
 
   @Column({
     type: 'bigint',
     nullable: true,
   })
-  balance: number;
+  balance: string;
 
   @Column()
   isActiveBill: boolean;
@@ -38,7 +38,7 @@ export class Bill extends BaseEntity {
   @ManyToOne(() => Client, (client) => client.bills, { nullable: true })
   client: Client;
 
-  @Column()
+  @Column({ nullable: true })
   clientId: string | null;
 
   @Column()

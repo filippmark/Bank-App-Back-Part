@@ -2,10 +2,10 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   ParseIntPipe,
   Patch,
   Post,
-  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -21,6 +21,15 @@ export class ClientDepositController {
     return await this.clientDepositService.getAllClientDeposits();
   }
 
+  @Get('/:id')
+  public async fetchClientDeposit(@Param('id') id: number) {
+    const clientDeposit = await this.clientDepositService.getClientDepositById(
+      id,
+    );
+
+    return this.clientDepositService.prepareClientDeposit(clientDeposit);
+  }
+
   @Post()
   @UsePipes(ValidationPipe)
   public async createClientDeposit(
@@ -32,17 +41,17 @@ export class ClientDepositController {
   }
 
   @Patch('accrueDepositPercentage/:id')
-  public async accrueDepositPercentage(@Query('id', ParseIntPipe) id: number) {
+  public async accrueDepositPercentage(@Param('id', ParseIntPipe) id: number) {
     return await this.clientDepositService.accrueDepositPercentage(id);
   }
 
   @Patch('closeClientDeposit/:id')
-  public async closeClientDeposit(@Query('id', ParseIntPipe) id: number) {
+  public async closeClientDeposit(@Param('id', ParseIntPipe) id: number) {
     return await this.clientDepositService.closeClientDeposit(id);
   }
 
   @Patch('getMoneyFromPercentBill/:id')
-  public async getMoneyFromPercentBill(@Query('id', ParseIntPipe) id: number) {
+  public async getMoneyFromPercentBill(@Param('id', ParseIntPipe) id: number) {
     return await this.clientDepositService.getMoneyFromPercentageBill(id);
   }
 

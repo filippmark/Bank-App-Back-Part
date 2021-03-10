@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BillRepository } from './bill.repository';
 import { Bill } from './bill.entity';
+import { BigNumber } from 'bignumber.js';
 
 @Injectable()
 export class BillService {
@@ -28,7 +29,9 @@ export class BillService {
     debitMain: number,
     creditMain: number,
   ): Promise<{ mainBill: Bill; percentBill: Bill }> {
-    let amountOfBills = await this.billRepository.count();
+    let amountOfBills = (await this.billRepository.count()) + 1;
+
+    console.log(amountOfBills);
 
     const currentBillIndividualId = amountOfBills.toString(10).padStart(8, '0');
     const accountCurrent = `${accountNumber}${currentBillIndividualId}`;
@@ -41,9 +44,9 @@ export class BillService {
 
     const mainBill = this.billRepository.create({
       account: `${accountCurrent}${keyCurrentBill}`,
-      debit: debitMain,
-      credit: creditMain,
-      balance: 0,
+      debit: debitMain.toString(),
+      credit: creditMain.toString(),
+      balance: '0',
       isActiveBill,
       clientId,
       isClosed: false,
@@ -51,9 +54,9 @@ export class BillService {
 
     const percentBill = this.billRepository.create({
       account: `${accountPercent}${keyPercentBill}`,
-      debit: 0,
-      credit: 0,
-      balance: 0,
+      debit: '0',
+      credit: '0',
+      balance: '0',
       isActiveBill,
       clientId,
       isClosed: false,
@@ -101,16 +104,25 @@ export class BillService {
       investmentBankAccount,
     } = await this.getBankAccountAndInvestmentBills();
 
-    bankAccount.debit = bankAccount.debit + bankAccountDebit;
-    bankAccount.credit = bankAccount.credit + bankAccountCredit;
-    bankAccount.balance = bankAccount.debit - bankAccount.credit;
+    bankAccount.debit = new BigNumber(bankAccount.debit)
+      .plus(new BigNumber(bankAccountDebit))
+      .toString();
+    bankAccount.credit = new BigNumber(bankAccount.credit)
+      .plus(new BigNumber(bankAccountCredit))
+      .toString();
+    bankAccount.balance = new BigNumber(bankAccount.debit)
+      .minus(new BigNumber(bankAccount.debit))
+      .toString();
 
-    investmentBankAccount.debit =
-      investmentBankAccount.debit + investmentBankAccountDebit;
-    investmentBankAccount.credit =
-      investmentBankAccount.credit + investmentBankAccountCredit;
-    investmentBankAccount.balance =
-      investmentBankAccount.credit - investmentBankAccount.debit;
+    investmentBankAccount.debit = new BigNumber(investmentBankAccount.debit)
+      .plus(new BigNumber(investmentBankAccountDebit))
+      .toString();
+    investmentBankAccount.credit = new BigNumber(investmentBankAccount.credit)
+      .plus(new BigNumber(investmentBankAccountCredit))
+      .toString();
+    investmentBankAccount.balance = new BigNumber(investmentBankAccount.credit)
+      .minus(new BigNumber(investmentBankAccount.debit))
+      .toString();
 
     await Promise.all([bankAccount.save(), investmentBankAccount.save()]);
   }

@@ -5,6 +5,8 @@ import { ClientCreditRepository } from './client-credit.repository';
 import { BillRepository } from '../bill/bill.repository';
 import { BillService } from '../bill/bill.service';
 import { BankInfo } from '../bank-info/BankInfo';
+import { BigNumber } from 'bignumber.js';
+import { ClientCredit } from './client-credit.entity';
 
 @Injectable()
 export class ClientCreditService {
@@ -52,6 +54,57 @@ export class ClientCreditService {
       clientCredit,
     );
 
-    console.log(savedClientCredit);
+    return savedClientCredit;
+  }
+
+  public async getClientCreditById(id: number) {
+    const clientCredit = await this.clientCreditRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    return this.prepareClientDeposit(clientCredit);
+  }
+
+  public async getClientCreditService() {
+    const clientCredits = await this.clientCreditRepository.find();
+    return clientCredits.map((clientCredit) =>
+      this.prepareClientDeposit(clientCredit),
+    );
+  }
+
+  public prepareClientDeposit(clientCredit: ClientCredit) {
+    return {
+      ...clientCredit,
+      startSum: clientCredit.creditSum / 100,
+      credit: {
+        ...clientCredit.credit,
+        maxSum: clientCredit.credit.maxSum / 100,
+      },
+      mainBill: {
+        ...clientCredit.mainBill,
+        debit: new BigNumber(clientCredit.mainBill.debit)
+          .dividedBy(100)
+          .toString(),
+        credit: new BigNumber(clientCredit.mainBill.credit)
+          .dividedBy(100)
+          .toString(),
+        balance: new BigNumber(clientCredit.mainBill.balance)
+          .dividedBy(100)
+          .toString(),
+      },
+      percentBill: {
+        ...clientCredit.percentBill,
+        debit: new BigNumber(clientCredit.percentBill.debit)
+          .dividedBy(100)
+          .toString(),
+        credit: new BigNumber(clientCredit.percentBill.credit)
+          .dividedBy(100)
+          .toString(),
+        balance: new BigNumber(clientCredit.percentBill.balance)
+          .dividedBy(100)
+          .toString(),
+      },
+    };
   }
 }

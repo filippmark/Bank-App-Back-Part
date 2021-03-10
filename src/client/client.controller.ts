@@ -41,7 +41,7 @@ export class ClientController {
   @Put(':id')
   @UsePipes(ValidationPipe)
   public async updateClient(
-    @Param('id', ParseUUIDPipe) id,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() createClientDto: CreateClientDto,
   ) {
     return await this.clientService.updateClient(id, createClientDto);

@@ -145,6 +145,6 @@ export class Client extends BaseEntity {
   })
   clientCredits: ClientCredit[];
 
-  @OneToMany(() => Bill, (bill) => bill.client)
+  @OneToMany(() => Bill, (bill) => bill.client, { nullable: true })
   bills: Bill[];
 }

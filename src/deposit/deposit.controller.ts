@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { DepositService } from './deposit.service';
 
 @Controller('deposit')
@@ -7,6 +7,19 @@ export class DepositController {
 
   @Get()
   public async getAllDeposits() {
-    return await this.depositService.getAllDeposits();
+    const deposits = await this.depositService.getAllDeposits();
+    return deposits.map((deposit) => ({
+      ...deposit,
+      minSum: deposit.minSum / 100,
+    }));
+  }
+
+  @Get('/:id')
+  public async fetchDeposit(@Param('id', ParseIntPipe) id: number) {
+    const deposit = await this.depositService.getDepositById(id);
+    return {
+      ...deposit,
+      minSum: deposit.minSum / 100,
+    };
   }
 }
