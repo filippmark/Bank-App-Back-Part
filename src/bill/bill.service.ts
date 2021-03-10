@@ -114,4 +114,8 @@ export class BillService {
 
     await Promise.all([bankAccount.save(), investmentBankAccount.save()]);
   }
+
+  public async getAllBills() {
+    return await this.billRepository.find();
+  }
 }

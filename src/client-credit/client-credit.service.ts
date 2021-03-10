@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ClientCreditRepository } from './client-credit.repository';
 import { BillRepository } from '../bill/bill.repository';
 import { BillService } from '../bill/bill.service';
+import { BankInfo } from '../bank-info/BankInfo';
 
 @Injectable()
 export class ClientCreditService {
@@ -16,7 +17,9 @@ export class ClientCreditService {
   ) {}
 
   public async createClientCredit(createClientCredit: CreateClientCreditDto) {
-    const { creditId, clientId, startCredit, creditSum } = createClientCredit;
+    const { creditId, clientId, creditSum } = createClientCredit;
+
+    const fixedCreditSum = creditSum * 100;
 
     const {
       mainBill,
@@ -25,21 +28,21 @@ export class ClientCreditService {
       clientId,
       true,
       '2400',
-      creditSum,
-      creditSum,
+      fixedCreditSum,
+      fixedCreditSum,
     );
 
     await this.billService.updateBankAccountAndInvestmentBills(
-      creditSum,
-      creditSum,
-      creditSum,
+      fixedCreditSum,
+      fixedCreditSum,
+      fixedCreditSum,
       0,
     );
 
     const clientCredit = this.clientCreditRepository.create({
       creditId,
       clientId,
-      startCredit,
+      startCredit: BankInfo.currentBankDate,
       creditSum,
       mainBill,
       percentBill,

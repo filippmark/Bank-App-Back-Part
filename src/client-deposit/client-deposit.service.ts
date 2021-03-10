@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientDepositRepository } from './client-deposit.repository';
 import { BillRepository } from '../bill/bill.repository';
 import { CreateClientDepositDto } from './dto/client-deposit.dto';
 import { BillService } from '../bill/bill.service';
 import { Bill } from '../bill/bill.entity';
+import { ClientDeposit } from './client-deposit.entity';
+import { BankInfo } from '../bank-info/BankInfo';
+import moment from 'moment';
 
 @Injectable()
 export class ClientDepositService {
@@ -22,10 +25,11 @@ export class ClientDepositService {
     const {
       clientId,
       depositId,
-      startDate,
       startSum,
       withCapitalization,
     } = createClientDepositDto;
+
+    const fixedStartSum = startSum * 100;
 
     const {
       mainBill,
@@ -34,21 +38,21 @@ export class ClientDepositService {
       clientId,
       false,
       '3014',
-      startSum,
-      startSum,
+      fixedStartSum,
+      fixedStartSum,
     );
 
     await this.billService.updateBankAccountAndInvestmentBills(
-      startSum,
-      startSum,
+      fixedStartSum,
+      fixedStartSum,
       0,
-      startSum,
+      fixedStartSum,
     );
 
     const clientDeposit = this.clientDepositRepository.create({
       clientId,
       depositId,
-      startDate,
+      startDate: BankInfo.currentBankDate,
       startSum,
       withCapitalization,
       mainBill,
@@ -70,21 +74,32 @@ export class ClientDepositService {
     }
   }
 
-  public async accrueDepositPercentage(id: number) {
+  private accrueDepositPercentageToBills(
+    clientDeposit: ClientDeposit,
+    investmentAccount: Bill,
+    days: number,
+  ) {
+    const percentBill = clientDeposit.percentBill;
+    const percentForMonth = (clientDeposit.deposit.percent / 365) * days;
+    const earnedMoney = Math.trunc(percentForMonth * clientDeposit.startSum);
+    investmentAccount.debit = investmentAccount.debit + earnedMoney;
+    this.calculateBalanceForBill(investmentAccount);
+    percentBill.credit = percentBill.credit + earnedMoney;
+    this.calculateBalanceForBill(percentBill);
+  }
+
+  public async accrueDepositPercentage(id: number, days = 1) {
     const clientDeposit = await this.clientDepositRepository.findOne({
       where: {
         id,
       },
     });
     const investmentAccount = await this.billService.getInvestmentBankAccount();
-    const percentBill = clientDeposit.percentBill;
-    const percentForMonth = (clientDeposit.deposit.percent / 365) * 30;
-    const earnedMoney = Math.trunc(percentForMonth * clientDeposit.startSum);
-    investmentAccount.debit = investmentAccount.debit + earnedMoney;
-    this.calculateBalanceForBill(investmentAccount);
-    percentBill.credit = percentBill.credit + earnedMoney;
-    this.calculateBalanceForBill(percentBill);
-    return await Promise.all([percentBill.save(), investmentAccount.save()]);
+    this.accrueDepositPercentageToBills(clientDeposit, investmentAccount, days);
+    return await Promise.all([
+      clientDeposit.percentBill.save(),
+      investmentAccount.save(),
+    ]);
   }
 
   private updateBillsAfterReceivingPercentsMoney(
@@ -106,10 +121,27 @@ export class ClientDepositService {
         id,
       },
     });
-    const bankAccount = await this.billService.getBankAccount();
-    const percentBill = clientDeposit.percentBill;
-    await this.updateBillsAfterReceivingPercentsMoney(percentBill, bankAccount);
-    return await Promise.all([percentBill.save(), bankAccount.save()]);
+    if (
+      clientDeposit.deposit.isRevocable &&
+      moment
+        .duration(
+          BankInfo.currentBankDate.diff(
+            moment(clientDeposit.startDate.getTime()),
+          ),
+        )
+        .asMonths() >= 1
+    ) {
+      const bankAccount = await this.billService.getBankAccount();
+      const percentBill = clientDeposit.percentBill;
+      await this.updateBillsAfterReceivingPercentsMoney(
+        percentBill,
+        bankAccount,
+      );
+      return await Promise.all([percentBill.save(), bankAccount.save()]);
+    }
+    throw new BadRequestException(
+      'could not get money from not revocable bill',
+    );
   }
 
   public async closeClientDeposit(id: number) {
@@ -118,34 +150,67 @@ export class ClientDepositService {
         id,
       },
     });
-    const {
-      investmentBankAccount,
-      bankAccount,
-    } = await this.billService.getBankAccountAndInvestmentBills();
-    const mainBill = clientDeposit.mainBill;
-    investmentBankAccount.debit =
-      investmentBankAccount.debit + clientDeposit.startSum;
-    this.calculateBalanceForBill(investmentBankAccount);
-    mainBill.credit = mainBill.credit + clientDeposit.startSum;
-    mainBill.debit = mainBill.debit + clientDeposit.startSum;
-    this.calculateBalanceForBill(mainBill);
-    bankAccount.debit = bankAccount.debit + clientDeposit.startSum;
-    bankAccount.credit = bankAccount.credit + clientDeposit.startSum;
-    this.calculateBalanceForBill(bankAccount);
 
-    const deposit = clientDeposit.deposit;
-    if (!deposit.isRevocable) {
+    if (
+      clientDeposit.deposit.isRevocable ||
+      (!clientDeposit.deposit.isRevocable &&
+        moment(clientDeposit.startDate.getTime())
+          .add(clientDeposit.deposit.termInMs, 'months')
+          .isSameOrAfter(BankInfo.currentBankDate))
+    ) {
+      const {
+        investmentBankAccount,
+        bankAccount,
+      } = await this.billService.getBankAccountAndInvestmentBills();
+      const mainBill = clientDeposit.mainBill;
+      investmentBankAccount.debit =
+        investmentBankAccount.debit + clientDeposit.startSum;
+      this.calculateBalanceForBill(investmentBankAccount);
+      mainBill.credit = mainBill.credit + clientDeposit.startSum;
+      mainBill.debit = mainBill.debit + clientDeposit.startSum;
+      this.calculateBalanceForBill(mainBill);
+      bankAccount.debit = bankAccount.debit + clientDeposit.startSum;
+      bankAccount.credit = bankAccount.credit + clientDeposit.startSum;
+      this.calculateBalanceForBill(bankAccount);
+
       this.updateBillsAfterReceivingPercentsMoney(
         clientDeposit.percentBill,
         bankAccount,
       );
+
+      clientDeposit.isClosed = true;
+      return await Promise.all([
+        clientDeposit.save(),
+        investmentBankAccount.save(),
+        bankAccount.save(),
+      ]);
     }
 
-    clientDeposit.isClosed = false;
-    return await Promise.all([
-      clientDeposit.save(),
-      investmentBankAccount.save(),
-      bankAccount.save(),
-    ]);
+    throw new BadRequestException('could not close deposit');
+  }
+
+  public async closeBank(countOfDays: number) {
+    const clientDeposits = await this.clientDepositRepository.find({
+      where: {
+        isClosed: false,
+      },
+    });
+    const investmentAccount = await this.billService.getInvestmentBankAccount();
+    await Promise.all(
+      clientDeposits.map(async (clientDeposit: ClientDeposit) => {
+        this.accrueDepositPercentageToBills(
+          clientDeposit,
+          investmentAccount,
+          countOfDays,
+        );
+        return await clientDeposit.percentBill.save();
+      }),
+    );
+    BankInfo.currentBankDate.add(countOfDays, 'days');
+    await investmentAccount.save();
+  }
+
+  public async getAllClientDeposits() {
+    return await this.clientDepositRepository.find();
   }
 }

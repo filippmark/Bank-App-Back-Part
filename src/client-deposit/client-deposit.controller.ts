@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   ParseIntPipe,
   Patch,
   Post,
@@ -15,6 +16,11 @@ import { CreateClientDepositDto } from './dto/client-deposit.dto';
 export class ClientDepositController {
   constructor(private readonly clientDepositService: ClientDepositService) {}
 
+  @Get()
+  public async getAllClientDeposits() {
+    return await this.clientDepositService.getAllClientDeposits();
+  }
+
   @Post()
   @UsePipes(ValidationPipe)
   public async createClientDeposit(
@@ -25,18 +31,28 @@ export class ClientDepositController {
     );
   }
 
-  @Patch()
+  @Patch('accrueDepositPercentage/:id')
   public async accrueDepositPercentage(@Query('id', ParseIntPipe) id: number) {
     return await this.clientDepositService.accrueDepositPercentage(id);
   }
 
-  @Patch()
+  @Patch('closeClientDeposit/:id')
   public async closeClientDeposit(@Query('id', ParseIntPipe) id: number) {
     return await this.clientDepositService.closeClientDeposit(id);
   }
 
-  @Patch()
+  @Patch('getMoneyFromPercentBill/:id')
   public async getMoneyFromPercentBill(@Query('id', ParseIntPipe) id: number) {
     return await this.clientDepositService.getMoneyFromPercentageBill(id);
+  }
+
+  @Patch('closeBankDay')
+  public async closeBankDay() {
+    return await this.clientDepositService.closeBank(1);
+  }
+
+  @Patch('closeBankMonth')
+  public async closeBankMonth() {
+    return await this.clientDepositService.closeBank(30);
   }
 }

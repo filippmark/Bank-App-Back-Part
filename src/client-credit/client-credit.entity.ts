@@ -12,7 +12,7 @@ import { Credit } from '../credit/credit.entity';
 import { Bill } from '../bill/bill.entity';
 
 @Entity()
-export class ClientCredit extends BaseEntity{
+export class ClientCredit extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

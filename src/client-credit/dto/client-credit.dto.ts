@@ -7,9 +7,6 @@ export class CreateClientCreditDto {
   @IsPositive()
   creditId: number;
 
-  @IsDateString()
-  startCredit: string;
-
   @IsNumber({
     maxDecimalPlaces: 2,
   })

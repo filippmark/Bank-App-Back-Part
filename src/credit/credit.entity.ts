@@ -20,6 +20,9 @@ export class Credit extends BaseEntity {
   @Column('real')
   percent: number;
 
+  @Column('integer')
+  termInMs: number;
+
   @Column({
     type: 'bigint',
     nullable: false,

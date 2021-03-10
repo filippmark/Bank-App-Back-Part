@@ -13,9 +13,6 @@ export class CreateClientDepositDto {
   @IsPositive()
   depositId: number;
 
-  @IsDateString()
-  startDate: string;
-
   @IsNumber({
     maxDecimalPlaces: 2,
   })
