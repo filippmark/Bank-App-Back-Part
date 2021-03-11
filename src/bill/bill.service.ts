@@ -22,6 +22,18 @@ export class BillService {
     );
   }
 
+  public calculateBalanceForBill(bill: Bill) {
+    if (bill.isActiveBill) {
+      bill.balance = new BigNumber(bill.debit)
+        .minus(new BigNumber(bill.credit))
+        .toString();
+    } else {
+      bill.balance = new BigNumber(bill.credit)
+        .minus(new BigNumber(bill.debit))
+        .toString();
+    }
+  }
+
   public async createMainAndPercentBill(
     clientId: string,
     isActiveBill: boolean,

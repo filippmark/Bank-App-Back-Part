@@ -35,4 +35,24 @@ export class ClientCreditController {
       createClientCredit,
     );
   }
+
+  @Get('/payment-plan/:id')
+  public async getCreditPaymentPlan(@Param('id', ParseIntPipe) id: number) {
+    return await this.clientCreditService.getCreditPaymentPlan(id);
+  }
+
+  @Patch('/pay-percents/:id')
+  public async payPercents(@Param('id', ParseIntPipe) id: number) {
+    return await this.clientCreditService.payPercents(id);
+  }
+
+  @Patch('/close-credit/:id')
+  public async closeCredit(@Param('id', ParseIntPipe) id: number) {
+    return await this.clientCreditService.closeCredit(id);
+  }
+
+  @Patch('close-day')
+  public async closeDay() {
+    return await this.clientCreditService.closeDay();
+  }
 }

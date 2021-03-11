@@ -22,7 +22,7 @@ export class ClientCredit extends BaseEntity {
   @Column()
   clientId: string;
 
-  @ManyToOne(() => Credit, (credit) => credit.creditClient)
+  @ManyToOne(() => Credit, (credit) => credit.creditClient, { eager: true })
   credit: Credit;
 
   @Column()
@@ -40,11 +40,11 @@ export class ClientCredit extends BaseEntity {
   @Column()
   startCredit: Date;
 
-  @OneToOne(() => Bill)
+  @OneToOne(() => Bill, { cascade: true })
   @JoinColumn()
   mainBill: Bill;
 
-  @OneToOne(() => Bill)
+  @OneToOne(() => Bill, { cascade: true })
   @JoinColumn()
   percentBill: Bill;
 }

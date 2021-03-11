@@ -32,6 +32,8 @@ export class Credit extends BaseEntity {
   @ManyToOne(() => Currency, (currency) => currency.credits, { eager: true })
   currency: Currency;
 
-  @OneToMany(() => ClientCredit, (clientCredit) => clientCredit.credit)
+  @OneToMany(() => ClientCredit, (clientCredit) => clientCredit.credit, {
+    eager: false,
+  })
   creditClient: ClientCredit[];
 }

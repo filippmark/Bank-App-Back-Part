@@ -65,7 +65,7 @@ export class ClientDepositService {
       withCapitalization,
     } = createClientDepositDto;
 
-    const fixedStartSum = startSum * 100;
+    const fixedStartSum = Math.trunc(startSum * 100);
 
     const {
       mainBill,
@@ -102,18 +102,6 @@ export class ClientDepositService {
     return savedClientDeposit;
   }
 
-  private calculateBalanceForBill(bill: Bill) {
-    if (bill.isActiveBill) {
-      bill.balance = new BigNumber(bill.debit)
-        .minus(new BigNumber(bill.credit))
-        .toString();
-    } else {
-      bill.balance = new BigNumber(bill.credit)
-        .minus(new BigNumber(bill.debit))
-        .toString();
-    }
-  }
-
   private accrueDepositPercentageToBills(
     clientDeposit: ClientDeposit,
     investmentAccount: Bill,
@@ -126,11 +114,11 @@ export class ClientDepositService {
     investmentAccount.debit = new BigNumber(investmentAccount.debit)
       .plus(new BigNumber(earnedMoney))
       .toString();
-    this.calculateBalanceForBill(investmentAccount);
+    this.billService.calculateBalanceForBill(investmentAccount);
     percentBill.credit = new BigNumber(percentBill.credit)
       .plus(earnedMoney)
       .toString();
-    this.calculateBalanceForBill(percentBill);
+    this.billService.calculateBalanceForBill(percentBill);
   }
 
   public async accrueDepositPercentage(id: number, days = 1) {
@@ -155,7 +143,7 @@ export class ClientDepositService {
     percentBill.debit = new BigNumber(percentBill.debit)
       .plus(earnedMoney)
       .toString();
-    this.calculateBalanceForBill(percentBill);
+    this.billService.calculateBalanceForBill(percentBill);
 
     bankAccount.debit = new BigNumber(bankAccount.debit)
       .plus(earnedMoney)
@@ -163,7 +151,7 @@ export class ClientDepositService {
     bankAccount.credit = new BigNumber(bankAccount.credit)
       .plus(earnedMoney)
       .toString();
-    this.calculateBalanceForBill(bankAccount);
+    this.billService.calculateBalanceForBill(bankAccount);
   }
 
   public async getMoneyFromPercentageBill(id: number) {
@@ -227,21 +215,21 @@ export class ClientDepositService {
       investmentBankAccount.debit = new BigNumber(investmentBankAccount.debit)
         .plus(new BigNumber(clientDeposit.startSum))
         .toString();
-      this.calculateBalanceForBill(investmentBankAccount);
+      this.billService.calculateBalanceForBill(investmentBankAccount);
       mainBill.credit = new BigNumber(mainBill.credit)
         .plus(new BigNumber(clientDeposit.startSum))
         .toString();
       mainBill.debit = new BigNumber(mainBill.debit)
         .plus(new BigNumber(clientDeposit.startSum))
         .toString();
-      this.calculateBalanceForBill(mainBill);
+      this.billService.calculateBalanceForBill(mainBill);
       bankAccount.debit = new BigNumber(bankAccount.debit)
         .plus(new BigNumber(clientDeposit.startSum))
         .toString();
       bankAccount.credit = new BigNumber(bankAccount.credit)
         .plus(new BigNumber(clientDeposit.startSum))
         .toString();
-      this.calculateBalanceForBill(bankAccount);
+      this.billService.calculateBalanceForBill(bankAccount);
 
       if (clientDeposit.percentBill.balance !== '0') {
         this.updateBillsAfterReceivingPercentsMoney(
