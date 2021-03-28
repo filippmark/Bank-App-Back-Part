@@ -165,6 +165,10 @@ export class ClientCreditService {
     let percentAmount = 0;
     const countMonthes = clientCredit.credit.termInMs;
     const percentPerMonth = clientCredit.credit.percent / (12 * 100);
+    const dayReturningCreditBodyPart =
+      clientCredit.creditSum / (countMonthes * 30);
+    let shareCredit = 0;
+    let sharePercent = 0;
 
     if (clientCredit.credit.isAnnuity) {
       const anuityCoefficient =
@@ -174,10 +178,12 @@ export class ClientCreditService {
       const paymentPerMonth = anuityCoefficient * clientCredit.creditSum;
 
       percentAmount = paymentPerMonth / 30;
+      shareCredit = dayReturningCreditBodyPart;
+      sharePercent = percentAmount - dayReturningCreditBodyPart;
     } else {
       let creditRest = clientCredit.creditSum;
       const dayReturningCreditBodyPart =
-        clientCredit.creditSum / countMonthes / 30;
+        clientCredit.creditSum / (countMonthes * 30);
       const percentPerDay = percentPerMonth / 30;
 
       const amoontOfDays = moment
@@ -190,10 +196,12 @@ export class ClientCreditService {
         creditRest -= dayReturningCreditBodyPart;
       }
 
-      percentAmount = dayReturningCreditBodyPart + creditRest * percentPerDay;
+      shareCredit = dayReturningCreditBodyPart;
+      sharePercent = creditRest * percentPerDay;
     }
-    percentAmount = Math.trunc(percentAmount);
+    percentAmount = Math.trunc(sharePercent);
     const bigPercentAmount = new BigNumber(percentAmount);
+    const bigCreditPart = new BigNumber(Math.trunc(shareCredit));
     investmentBankAccount.credit = new BigNumber(investmentBankAccount.credit)
       .plus(bigPercentAmount)
       .toString();
@@ -201,6 +209,11 @@ export class ClientCreditService {
     percentBill.credit = new BigNumber(percentBill.credit)
       .plus(bigPercentAmount)
       .toString();
+    const mainBill = clientCredit.mainBill;
+    mainBill.credit = new BigNumber(mainBill.credit)
+      .plus(bigCreditPart)
+      .toString();
+    this.billService.calculateBalanceForBill(mainBill);
     this.billService.calculateBalanceForBill(percentBill);
     this.billService.calculateBalanceForBill(investmentBankAccount);
     return clientCredit;
@@ -230,24 +243,22 @@ export class ClientCreditService {
       bankAccount,
     } = await this.billService.getBankAccountAndInvestmentBills();
 
-    if (!clientCredit.credit.isAnnuity) {
-      const amount = new BigNumber(clientCredit.creditSum);
-      bankAccount.debit = new BigNumber(bankAccount.debit)
-        .plus(amount)
-        .toString();
-      bankAccount.credit = new BigNumber(bankAccount.credit)
-        .plus(amount)
-        .toString();
-      this.billService.calculateBalanceForBill(bankAccount);
-      const mainBill = clientCredit.mainBill;
-      mainBill.debit = new BigNumber(mainBill.debit).plus(amount).toString();
-      mainBill.credit = new BigNumber(mainBill.credit).plus(amount).toString();
-      this.billService.calculateBalanceForBill(mainBill);
-      investmentBankAccount.credit = new BigNumber(investmentBankAccount.credit)
-        .plus(amount)
-        .toString();
-      this.billService.calculateBalanceForBill(investmentBankAccount);
-    }
+    const amount = new BigNumber(clientCredit.mainBill.balance).absoluteValue();
+    bankAccount.debit = new BigNumber(bankAccount.debit)
+      .plus(amount)
+      .toString();
+    bankAccount.credit = new BigNumber(bankAccount.credit)
+      .plus(amount)
+      .toString();
+    this.billService.calculateBalanceForBill(bankAccount);
+    const mainBill = clientCredit.mainBill;
+    mainBill.debit = new BigNumber(mainBill.debit).plus(amount).toString();
+    mainBill.credit = new BigNumber(mainBill.credit).plus(amount).toString();
+    this.billService.calculateBalanceForBill(mainBill);
+    investmentBankAccount.credit = new BigNumber(investmentBankAccount.credit)
+      .plus(amount)
+      .toString();
+    this.billService.calculateBalanceForBill(investmentBankAccount);
 
     const bigNumberPercent = new BigNumber(
       clientCredit.percentBill.balance,
@@ -323,13 +334,15 @@ export class ClientCreditService {
       clientCredits.map(async (clientCredit) => {
         if (
           moment(clientCredit.startCredit)
-            .add(clientCredit.credit.termInMs)
+            .add(clientCredit.credit.termInMs, 'months')
             .isSameOrAfter(BankInfo.currentBankDate)
-        )
+        ) {
           this.accrueCreditPercentage(clientCredit, investmentBankAccount);
-        return await clientCredit.percentBill.save();
+          return await clientCredit.save();
+        }
       }),
     ]);
+    BankInfo.currentBankDate.add(1, 'days');
     await investmentBankAccount.save();
     return investmentBankAccount;
   }
